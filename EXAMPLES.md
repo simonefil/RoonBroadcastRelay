@@ -75,7 +75,7 @@ DNS = 172.16.0.1
 [Peer]
 PublicKey = <SERVER_PUBLIC_KEY>
 Endpoint = <PUBLIC_IP>:51820
-AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 255.255.255.255/32
+AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 255.255.255.255/32, 239.255.90.90/32
 PersistentKeepalive = 25
 ```
 
@@ -242,7 +242,7 @@ DNS = 172.16.0.1
 [Peer]
 PublicKey = <SITE_A_RW_PUBLIC_KEY>
 Endpoint = <SITE_A_PUBLIC_IP>:51821
-AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 255.255.255.255/32
+AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 255.255.255.255/32, 239.255.90.90/32
 PersistentKeepalive = 25
 ```
 
@@ -257,7 +257,7 @@ DNS = 192.168.30.1
 [Peer]
 PublicKey = <SITE_B_RW_PUBLIC_KEY>
 Endpoint = <SITE_B_PUBLIC_IP>:51821
-AllowedIPs = 10.10.98.0/24, 192.168.30.0/24, 172.16.0.0/24, 255.255.255.255/32
+AllowedIPs = 10.10.98.0/24, 192.168.30.0/24, 172.16.0.0/24, 255.255.255.255/32, 239.255.90.90/32
 PersistentKeepalive = 25
 ```
 
@@ -487,7 +487,7 @@ DNS = 172.16.0.1
 [Peer]
 PublicKey = <SITE_A_RW_PUBLIC_KEY>
 Endpoint = <SITE_A_PUBLIC_IP>:51821
-AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 192.168.100.0/24, 255.255.255.255/32
+AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 192.168.100.0/24, 255.255.255.255/32, 239.255.90.90/32
 PersistentKeepalive = 25
 ```
 
@@ -502,7 +502,7 @@ DNS = 192.168.30.1
 [Peer]
 PublicKey = <SITE_B_RW_PUBLIC_KEY>
 Endpoint = <SITE_B_PUBLIC_IP>:51821
-AllowedIPs = 10.10.98.0/24, 192.168.30.0/24, 192.168.99.0/24, 172.16.0.0/24, 255.255.255.255/32
+AllowedIPs = 10.10.98.0/24, 192.168.30.0/24, 192.168.99.0/24, 172.16.0.0/24, 255.255.255.255/32, 239.255.90.90/32
 PersistentKeepalive = 25
 ```
 
