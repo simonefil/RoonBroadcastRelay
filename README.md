@@ -122,4 +122,20 @@ dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=tru
 sudo cp -r ./publish/* /opt/roonrelay/
 ```
 
+## Buy me a coffee!
+
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/simonefil)
+
+## FAQ
+
+**- Will it work with uRPF (Reverse Path Forwarding)?**
+No, because the relay injects packets with a preserved (spoofed) source IP, routers with Strict uRPF enabled (common on enterprise and UniFi gear) will drop this traffic. You may need to disable strict uRPF or switch to loose mode on relay/VPN interfaces.
+
+**- Why there are no Windows build?**
+Although this is a .NET project, modern Windows networking stacks prevent UDP source-IP spoofing via raw sockets. This is a Linux-only solution.
+
+**- It does not work!**
+Have you checked the examples?
+
+**- How to deply on docker?**
+I won't support Docker since I don't use it in my setup. If anyone is willing to test it and share instructions it would be great!
