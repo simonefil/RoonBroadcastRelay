@@ -121,3 +121,5 @@ dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=tru
 # Copy to installation directory
 sudo cp -r ./publish/* /opt/roonrelay/
 ```
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/simonefil)
