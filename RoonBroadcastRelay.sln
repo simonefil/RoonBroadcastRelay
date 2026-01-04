@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36811.4 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoonRelay", "RoonRelay\RoonRelay.csproj", "{D0AD9D48-97D4-4F84-BD66-A89547127A2C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoonBroadcastRelay", "RoonRelay\RoonBroadcastRelay.csproj", "{D0AD9D48-97D4-4F84-BD66-A89547127A2C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

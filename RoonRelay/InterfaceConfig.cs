@@ -1,4 +1,4 @@
-namespace RoonRelay
+namespace RoonBroadcastRelay
 {
     /// <summary>
     /// Configuration for a local network interface.

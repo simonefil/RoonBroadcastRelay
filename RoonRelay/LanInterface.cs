@@ -1,8 +1,7 @@
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 
-namespace RoonRelay
+namespace RoonBroadcastRelay
 {
     /// <summary>
     /// Represents a local network interface used by the relay.

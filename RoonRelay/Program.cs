@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-namespace RoonRelay
+namespace RoonBroadcastRelay
 {
     /// <summary>
     /// Entry point for the Roon Relay application.
@@ -35,7 +35,7 @@ namespace RoonRelay
             RelayConfig config = JsonSerializer.Deserialize<RelayConfig>(json);
 
             // Create and start relay service
-            RoonRelay relay = new RoonRelay(config);
+            RoonBroadcastRelay relay = new RoonBroadcastRelay(config);
             relay.Start();
         }
 

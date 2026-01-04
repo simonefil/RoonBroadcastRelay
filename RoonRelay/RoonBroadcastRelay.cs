@@ -2,17 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 
-namespace RoonRelay
+namespace RoonBroadcastRelay
 {
     /// <summary>
     /// Main relay service for forwarding Roon Audio protocol packets between networks.
     /// Handles multicast/broadcast traffic and tunnel connections to remote relays.
     /// </summary>
-    public class RoonRelay
+    public class RoonBroadcastRelay
     {
         // Roon Audio protocol uses UDP port 9003
         const int ROON_PORT = 9003;
@@ -35,7 +33,7 @@ namespace RoonRelay
         /// Initializes a new instance of the RoonRelay with the specified configuration.
         /// </summary>
         /// <param name="config">Relay configuration settings.</param>
-        public RoonRelay(RelayConfig config)
+        public RoonBroadcastRelay(RelayConfig config)
         {
             this._config = config;
 

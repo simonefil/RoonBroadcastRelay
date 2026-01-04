@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace RoonRelay
+namespace RoonBroadcastRelay
 {
     /// <summary>
     /// Configuration settings for the Roon Relay service.
