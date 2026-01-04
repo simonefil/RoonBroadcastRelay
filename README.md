@@ -1,4 +1,4 @@
-# Roon Relay - Linux Deployment Guide
+# Roon Broadcast Relay - Linux Deployment Guide
 
 ## Prerequisites
 
@@ -12,20 +12,20 @@
 
 ```bash
 # Create installation directory
-sudo mkdir -p /opt/roonrelay
-cd /opt/roonrelay
+sudo mkdir -p /opt/roonbroadcastrelay
+cd /opt/roonbroadcastrelay
 
 # Download latest release
-wget https://github.com/simonefil/RoonRelay/releases/download/1.0/RoonRelay
+wget https://github.com/simonefil/RoonBroadcastRelay/releases/download/1.1/RoonBroadcastRelay-amd64
 
 # Make executable
-sudo chmod +x RoonRelay
+sudo chmod +x RoonBroadcastRelay-amd64
 ```
 
 ### 2. Create configuration file
 
 ```bash
-sudo nano /opt/roonrelay/appsettings.json
+sudo nano /opt/roonbroadcastrelay/appsettings.json
 ```
 
 Example configuration:
@@ -51,20 +51,20 @@ See [EXAMPLES.md](EXAMPLES.md) for more configuration examples.
 ### 3. Create systemd service
 
 ```bash
-sudo nano /etc/systemd/system/roonrelay.service
+sudo nano /etc/systemd/system/roonbroadcastrelay.service
 ```
 
 Contents:
 
 ```ini
 [Unit]
-Description=Roon Relay Service
+Description=Roon Broadcast Relay Service
 After=network.target
 
 [Service]
 Type=simple
 WorkingDirectory=/opt/roonrelay
-ExecStart=/opt/roonrelay/RoonRelay /opt/roonrelay/appsettings.json
+ExecStart=/opt/roonbroadcastrelay/RoonBroadcastRelay-amd64 /opt/roonbroadcastrelay/appsettings.json
 Restart=always
 RestartSec=10
 User=root
@@ -80,46 +80,46 @@ WantedBy=multi-user.target
 sudo systemctl daemon-reload
 
 # Enable service to start on boot
-sudo systemctl enable roonrelay
+sudo systemctl enable roonbroadcastrelay
 
 # Start the service
-sudo systemctl start roonrelay
+sudo systemctl start roonbroadcastrelay
 
 # Check status
-sudo systemctl status roonrelay
+sudo systemctl status roonbroadcastrelay
 ```
 
 ## Management Commands
 
 ```bash
 # View logs
-journalctl -u roonrelay -f
+journalctl -u roonbroadcastrelay -f
 
 # View logs from last hour
-journalctl -u roonrelay --since "1 hour ago"
+journalctl -u roonbroadcastrelay --since "1 hour ago"
 
 # Restart service
-sudo systemctl restart roonrelay
+sudo systemctl restart roonbroadcastrelay
 
 # Stop service
-sudo systemctl stop roonrelay
+sudo systemctl stop roonbroadcastrelay
 
 # Disable service
-sudo systemctl disable roonrelay
+sudo systemctl disable roonbroadcastrelay
 ```
 
 ## Building from source
 
 ```bash
 # Clone repository
-git clone https://github.com/simonefil/RoonRelay.git
+git clone https://github.com/simonefil/RoonBroadcastRelay.git
 cd roonrelay
 
 # Build self-contained binary
 dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o ./publish
 
 # Copy to installation directory
-sudo cp -r ./publish/* /opt/roonrelay/
+sudo cp -r ./publish/* /opt/roonbroadcastrelay/
 ```
 
 ## Buy me a coffee!
