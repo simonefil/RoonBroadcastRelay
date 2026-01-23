@@ -27,9 +27,6 @@ jobs:
           - os: macos-latest
             rid: osx-arm64
             artifact: RoonBroadcastRelay-osx-arm64
-          - os: ubuntu-latest
-            rid: freebsd-x64
-            artifact: RoonBroadcastRelay-freebsd-x64
 
     runs-on: ${{ matrix.os }}
 
@@ -85,7 +82,6 @@ jobs:
           cp ./artifacts/RoonBroadcastRelay-linux-arm64/RoonBroadcastRelay release/RoonBroadcastRelay-linux-arm64
           cp ./artifacts/RoonBroadcastRelay-osx-x64/RoonBroadcastRelay release/RoonBroadcastRelay-osx-x64
           cp ./artifacts/RoonBroadcastRelay-osx-arm64/RoonBroadcastRelay release/RoonBroadcastRelay-osx-arm64
-          cp ./artifacts/RoonBroadcastRelay-freebsd-x64/RoonBroadcastRelay release/RoonBroadcastRelay-freebsd-x64
           ls -la release/
 
       - name: Create Release

@@ -8,7 +8,7 @@
 | Linux ARM64 | Tested | Raspberry Pi, etc. |
 | macOS x64 | Untested | Intel Macs - binaries provided but not tested |
 | macOS ARM64 | Untested | Apple Silicon - binaries provided but not tested |
-| FreeBSD x64 | Untested | Binaries provided but not tested |
+| FreeBSD | No binary | Self-contained runtime not available, manual build required |
 | Windows | Not supported | Kernel blocks raw socket UDP spoofing |
 
 ## Prerequisites
@@ -135,7 +135,7 @@ git clone https://github.com/simonefil/RoonBroadcastRelay.git
 cd RoonBroadcastRelay
 
 # Build self-contained binary (choose your platform)
-# Available targets: linux-x64, linux-arm64, osx-x64, osx-arm64, freebsd-x64
+# Available targets: linux-x64, linux-arm64, osx-x64, osx-arm64
 dotnet publish RoonBroadcastRelay/RoonBroadcastRelay.csproj \
   -c Release \
   -r linux-x64 \
@@ -196,7 +196,7 @@ No, because the relay injects packets with a preserved (spoofed) source IP, rout
 Modern Windows networking stacks prevent UDP source-IP spoofing via raw sockets at kernel level. This limitation cannot be bypassed.
 
 **- Does it work on macOS and FreeBSD?**
-Binaries are provided for macOS (Intel and Apple Silicon) and FreeBSD x64, but they are currently untested. Feedback is welcome.
+Binaries are provided for macOS (Intel and Apple Silicon) but are currently untested. FreeBSD binaries are not provided because .NET self-contained runtime is not available; you can try building manually with `--self-contained false` if you have .NET runtime installed. Feedback is welcome.
 
 **- Which protocols should I enable?**
 Enable only Raat unless you specifically need AirPlay, Chromecast/Sonos, or Squeezebox endpoints to be discovered across subnets. Each enabled protocol adds listener threads and network traffic.
