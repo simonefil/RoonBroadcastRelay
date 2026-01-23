@@ -31,5 +31,10 @@ namespace RoonBroadcastRelay
         /// Optional list of unicast targets to forward packets to.
         /// </summary>
         public List<string> UnicastTargets { get; set; }
+
+        /// <summary>
+        /// Protocol enable/disable settings. If null, only RAAT is enabled.
+        /// </summary>
+        public ProtocolSettings Protocols { get; set; }
     }
 }

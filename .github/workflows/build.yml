@@ -1,0 +1,93 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  PROJECT_PATH: 'RoonBroadcastRelay/RoonBroadcastRelay.csproj'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            artifact: RoonBroadcastRelay-linux-x64
+          - os: ubuntu-latest
+            rid: linux-arm64
+            artifact: RoonBroadcastRelay-linux-arm64
+          - os: macos-latest
+            rid: osx-x64
+            artifact: RoonBroadcastRelay-osx-x64
+          - os: macos-latest
+            rid: osx-arm64
+            artifact: RoonBroadcastRelay-osx-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Publish ${{ matrix.rid }}
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:EnableCompressionInSingleFile=true \
+            -o ./publish/${{ matrix.rid }}
+
+      - name: List output files
+        run: ls -la ./publish/${{ matrix.rid }}/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ./publish/${{ matrix.rid }}/
+          retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Prepare binaries for release
+        run: |
+          mkdir -p release
+          # Rename binaries with platform suffix
+          cp ./artifacts/RoonBroadcastRelay-linux-x64/RoonBroadcastRelay release/RoonBroadcastRelay-linux-x64
+          cp ./artifacts/RoonBroadcastRelay-linux-arm64/RoonBroadcastRelay release/RoonBroadcastRelay-linux-arm64
+          cp ./artifacts/RoonBroadcastRelay-osx-x64/RoonBroadcastRelay release/RoonBroadcastRelay-osx-x64
+          cp ./artifacts/RoonBroadcastRelay-osx-arm64/RoonBroadcastRelay release/RoonBroadcastRelay-osx-arm64
+          ls -la release/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./release/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

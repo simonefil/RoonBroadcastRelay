@@ -75,7 +75,7 @@ DNS = 172.16.0.1
 [Peer]
 PublicKey = <SERVER_PUBLIC_KEY>
 Endpoint = <PUBLIC_IP>:51820
-AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 255.255.255.255/32, 239.255.90.90/32
+AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 255.255.255.255/32, 224.0.0.0/4
 PersistentKeepalive = 25
 ```
 
@@ -95,7 +95,13 @@ PersistentKeepalive = 25
   ],
   "UnicastTargets": [
     "10.10.99.3"
-  ]
+  ],
+  "Protocols": {
+    "Raat": true,
+    "AirPlay": false,
+    "Ssdp": false,
+    "Squeezebox": false
+  }
 }
 ```
 
@@ -242,7 +248,7 @@ DNS = 172.16.0.1
 [Peer]
 PublicKey = <SITE_A_RW_PUBLIC_KEY>
 Endpoint = <SITE_A_PUBLIC_IP>:51821
-AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 255.255.255.255/32, 239.255.90.90/32
+AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 255.255.255.255/32, 224.0.0.0/4
 PersistentKeepalive = 25
 ```
 
@@ -257,7 +263,7 @@ DNS = 192.168.30.1
 [Peer]
 PublicKey = <SITE_B_RW_PUBLIC_KEY>
 Endpoint = <SITE_B_PUBLIC_IP>:51821
-AllowedIPs = 10.10.98.0/24, 192.168.30.0/24, 172.16.0.0/24, 255.255.255.255/32, 239.255.90.90/32
+AllowedIPs = 10.10.98.0/24, 192.168.30.0/24, 172.16.0.0/24, 255.255.255.255/32, 224.0.0.0/4
 PersistentKeepalive = 25
 ```
 
@@ -277,7 +283,13 @@ PersistentKeepalive = 25
   ],
   "UnicastTargets": [
     "10.10.99.3"
-  ]
+  ],
+  "Protocols": {
+    "Raat": true,
+    "AirPlay": false,
+    "Ssdp": false,
+    "Squeezebox": false
+  }
 }
 ```
 
@@ -297,11 +309,17 @@ PersistentKeepalive = 25
   ],
   "UnicastTargets": [
     "10.10.98.3"
-  ]
+  ],
+  "Protocols": {
+    "Raat": true,
+    "AirPlay": false,
+    "Ssdp": false,
+    "Squeezebox": false
+  }
 }
 ```
 
-**Note:** Each relay should have its local roadwarrior clients in `UnicastTargets`.
+**Note:** Each relay should have its local roadwarrior clients in `UnicastTargets`. Both relays must have identical `Protocols` settings.
 
 ---
 
@@ -487,7 +505,7 @@ DNS = 172.16.0.1
 [Peer]
 PublicKey = <SITE_A_RW_PUBLIC_KEY>
 Endpoint = <SITE_A_PUBLIC_IP>:51821
-AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 192.168.100.0/24, 255.255.255.255/32, 239.255.90.90/32
+AllowedIPs = 10.10.99.0/24, 172.16.0.0/24, 192.168.100.0/24, 255.255.255.255/32, 224.0.0.0/4
 PersistentKeepalive = 25
 ```
 
@@ -502,7 +520,7 @@ DNS = 192.168.30.1
 [Peer]
 PublicKey = <SITE_B_RW_PUBLIC_KEY>
 Endpoint = <SITE_B_PUBLIC_IP>:51821
-AllowedIPs = 10.10.98.0/24, 192.168.30.0/24, 192.168.99.0/24, 172.16.0.0/24, 255.255.255.255/32, 239.255.90.90/32
+AllowedIPs = 10.10.98.0/24, 192.168.30.0/24, 192.168.99.0/24, 172.16.0.0/24, 255.255.255.255/32, 224.0.0.0/4
 PersistentKeepalive = 25
 ```
 
@@ -527,7 +545,13 @@ PersistentKeepalive = 25
   ],
   "UnicastTargets": [
     "10.10.99.5"
-  ]
+  ],
+  "Protocols": {
+    "Raat": true,
+    "AirPlay": false,
+    "Ssdp": false,
+    "Squeezebox": false
+  }
 }
 ```
 
@@ -552,14 +576,21 @@ PersistentKeepalive = 25
   ],
   "UnicastTargets": [
     "10.10.98.5"
-  ]
+  ],
+  "Protocols": {
+    "Raat": true,
+    "AirPlay": false,
+    "Ssdp": false,
+    "Squeezebox": false
+  }
 }
 ```
 
-**Note:** 
+**Note:**
 - Each relay lists all its local network interfaces in `LocalInterfaces`
 - Each relay lists its local roadwarrior clients in `UnicastTargets`
 - VLANs require the relay VM to have an IP on each VLAN
+- Both relays must have identical `Protocols` settings
 
 ---
 
@@ -567,7 +598,19 @@ PersistentKeepalive = 25
 
 | Port | Protocol | Purpose |
 |------|----------|---------|
-| 9003 | UDP | Discovery broadcast/multicast |
+| 9003 | UDP | RAAT discovery broadcast/multicast |
 | 9004 | UDP | Tunnel between relays |
 | 9100-9200 | TCP | Control and audio streaming |
 | 9330-9332 | TCP | HTTP/HTTPS API |
+
+## Additional Protocol Ports
+
+If you enable additional protocols in the `Protocols` configuration, these ports are also used:
+
+| Port | Protocol | Purpose |
+|------|----------|---------|
+| 5353 | UDP | mDNS (AirPlay discovery) |
+| 1900 | UDP | SSDP (Chromecast, Sonos, LINN) |
+| 3483 | UDP | SlimProto (Squeezebox discovery) |
+
+**Note:** If you enable additional protocols, you must also update your firewall NAT port forward rules to redirect these ports to the relay.
