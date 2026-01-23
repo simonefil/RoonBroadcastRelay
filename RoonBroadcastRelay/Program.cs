@@ -54,19 +54,26 @@ namespace RoonBroadcastRelay
                 TunnelPort = 9004,
                 RemoteRelayIp = "192.168.30.40",
                 LocalInterfaces = new List<InterfaceConfig>
-            {
-                new InterfaceConfig
                 {
-                    LocalIp = "172.16.0.120",
-                    BroadcastAddress = "172.16.0.255",
-                    SubnetMask = "255.255.255.0"
-                }
-            },
+                    new InterfaceConfig
+                    {
+                        LocalIp = "172.16.0.120",
+                        BroadcastAddress = "172.16.0.255",
+                        SubnetMask = "255.255.255.0"
+                    }
+                },
                 UnicastTargets = new List<string>
-            {
-                "10.0.0.50",
-                "10.0.0.51"
-            }
+                {
+                    "10.0.0.50",
+                    "10.0.0.51"
+                },
+                Protocols = new ProtocolSettings
+                {
+                    Raat = true,
+                    AirPlay = false,
+                    Ssdp = false,
+                    Squeezebox = false
+                }
             };
 
             // Serialize with indentation for readability
