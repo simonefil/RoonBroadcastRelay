@@ -49,6 +49,7 @@
 | Interface | Protocol | Source | Destination | Dest Port | Redirect IP | Redirect Port | Description |
 |-----------|----------|--------|-------------|-----------|-------------|---------------|-------------|
 | WG_RW | UDP | 10.10.99.0/24 | 255.255.255.255 | 9003 | 172.16.0.108 | 9003 | Roon broadcast to relay |
+| WG_RW | UDP | 10.10.99.0/24 | 239.255.90.90 | 9003 | 172.16.0.108 | 9003 | Roon multicast to relay |
 
 ### WireGuard Configuration
 
