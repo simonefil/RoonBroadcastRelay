@@ -16,6 +16,7 @@
 - Linux server (Debian, Ubuntu, or similar), macOS, or FreeBSD
 - Root or sudo access
 - Network connectivity to Roon server and clients
+- The host/VM/container MUST be different from the Roon Server host
 
 ## Installation
 
