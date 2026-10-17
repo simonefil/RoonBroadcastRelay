@@ -88,7 +88,7 @@ PersistentKeepalive = 25
 {
   "SiteName": "MainRelay",
   "TunnelPort": 9004,
-  "RemoteRelayIp": "",
+  "RemoteRelayIps": [],
   "LocalInterfaces": [
     {
       "LocalIp": "172.16.0.108",
@@ -276,7 +276,9 @@ PersistentKeepalive = 25
 {
   "SiteName": "RelayA",
   "TunnelPort": 9004,
-  "RemoteRelayIp": "192.168.30.40",
+  "RemoteRelayIps": [
+    "192.168.30.40"
+  ],
   "LocalInterfaces": [
     {
       "LocalIp": "172.16.0.108",
@@ -302,7 +304,9 @@ PersistentKeepalive = 25
 {
   "SiteName": "RelayB",
   "TunnelPort": 9004,
-  "RemoteRelayIp": "172.16.0.108",
+  "RemoteRelayIps": [
+    "172.16.0.108"
+  ],
   "LocalInterfaces": [
     {
       "LocalIp": "192.168.30.40",
@@ -533,7 +537,9 @@ PersistentKeepalive = 25
 {
   "SiteName": "RelayA",
   "TunnelPort": 9004,
-  "RemoteRelayIp": "192.168.30.40",
+  "RemoteRelayIps": [
+    "192.168.30.40"
+  ],
   "LocalInterfaces": [
     {
       "LocalIp": "172.16.0.108",
@@ -564,7 +570,9 @@ PersistentKeepalive = 25
 {
   "SiteName": "RelayB",
   "TunnelPort": 9004,
-  "RemoteRelayIp": "172.16.0.108",
+  "RemoteRelayIps": [
+    "172.16.0.108"
+  ],
   "LocalInterfaces": [
     {
       "LocalIp": "192.168.30.40",
@@ -594,6 +602,214 @@ PersistentKeepalive = 25
 - Each relay lists its local roadwarrior clients in `UnicastTargets`
 - VLANs require the relay VM to have an IP on each VLAN
 - Both relays must have identical `Protocols` settings
+
+---
+
+## Example 4: Three Sites (Full Mesh)
+
+### Network Diagram
+
+```
+        SITE A                                                    SITE B
+        ══════                                                    ══════
+
+┌───────────────────┐                                   ┌─────────────────────┐
+│    OPNsense A     │         WireGuard S2S A-B         │     OPNsense B      │
+│   172.16.0.1      │◄─────────────────────────────────►│    192.168.30.1     │
+│  WG A-B 10.10.90.1│         10.10.90.0/30             │  WG A-B 10.10.90.2  │
+│  WG A-C 10.10.91.1│                                   │  WG B-C 10.10.92.1  │
+└─────────┬─────────┘                                   └───────────┬─────────┘
+          │  ▲                                                 ▲    │
+          │  │ WireGuard S2S A-C             WireGuard S2S B-C │    │
+          │  │ 10.10.91.0/30                     10.10.92.0/30 │    │
+          │  │                                                 │    │
+          │  │            ┌─────────────────────┐              │    │
+          │  └───────────►│     OPNsense C      │◄─────────────┘    │
+          │               │    192.168.50.1     │                   │
+          │               │  WG A-C 10.10.91.2  │                   │
+          │               │  WG B-C 10.10.92.2  │                   │
+          │               └──────────┬──────────┘                   │
+          │                          │                              │
+          │ LAN 172.16.0.0/24        │ LAN 192.168.50.0/24          │ LAN 192.168.30.0/24
+          │                          │                              │
+    ┌─────┴─────┐              ┌─────┴─────┐                  ┌─────┴─────┐
+    │           │              │           │                  │           │
+┌───┴───┐   ┌───┴───┐      ┌───┴───┐   ┌───┴───┐          ┌───┴───┐   ┌───┴───┐
+│ Roon  │   │Relay A│      │Relay C│   │Client │          │Relay B│   │Client │
+│Server │   │  VM   │      │  VM   │   │  LAN  │          │  VM   │   │  LAN  │
+│.106   │   │.108   │      │.40    │   │.30    │          │.40    │   │.30    │
+└───────┘   └───────┘      └───────┘   └───────┘          └───────┘   └───────┘
+
+                         SITE C
+                         ══════
+
+Relay tunnel 9004: A ◄─► B, A ◄─► C, B ◄─► C
+```
+
+### Components
+
+| Component | IP | Site | Role |
+|-----------|-----|------|------|
+| OPNsense A | 172.16.0.1 / 10.10.90.1 / 10.10.91.1 | A | Firewall |
+| Roon Server | 172.16.0.106 | A | Roon Server |
+| VM Relay A | 172.16.0.108 | A | Relay |
+| OPNsense B | 192.168.30.1 / 10.10.90.2 / 10.10.92.1 | B | Firewall |
+| VM Relay B | 192.168.30.40 | B | Relay |
+| LAN Client B | 192.168.30.30 | B | Roon endpoint |
+| OPNsense C | 192.168.50.1 / 10.10.91.2 / 10.10.92.2 | C | Firewall |
+| VM Relay C | 192.168.50.40 | C | Relay |
+| LAN Client C | 192.168.50.30 | C | Roon endpoint |
+
+### Firewall Rules
+
+#### Site A - WAN Rules
+
+| # | Proto | Source | Destination | Port | Description |
+|---|-------|--------|-------------|------|-------------|
+| 1 | UDP | * | This firewall | 51820 | WireGuard S2S A-B |
+| 2 | UDP | * | This firewall | 51822 | WireGuard S2S A-C |
+
+#### Site A - WG_S2S Rules
+
+| # | Proto | Source | Destination | Port | Description |
+|---|-------|--------|-------------|------|-------------|
+| 1 | UDP | 192.168.30.40 | 172.16.0.108 | 9004 | Relay tunnel from B |
+| 2 | UDP | 192.168.50.40 | 172.16.0.108 | 9004 | Relay tunnel from C |
+| 3 | TCP/UDP | 192.168.30.0/24 | 172.16.0.106 | * | Roon from LAN B |
+| 4 | TCP/UDP | 192.168.50.0/24 | 172.16.0.106 | * | Roon from LAN C |
+| 5 | * | * | * | * | BLOCK all |
+
+#### Site B - WAN Rules
+
+| # | Proto | Source | Destination | Port | Description |
+|---|-------|--------|-------------|------|-------------|
+| 1 | UDP | * | This firewall | 51820 | WireGuard S2S A-B |
+| 2 | UDP | * | This firewall | 51823 | WireGuard S2S B-C |
+
+#### Site B - WG_S2S Rules
+
+| # | Proto | Source | Destination | Port | Description |
+|---|-------|--------|-------------|------|-------------|
+| 1 | UDP | 172.16.0.108 | 192.168.30.40 | 9004 | Relay tunnel from A |
+| 2 | UDP | 192.168.50.40 | 192.168.30.40 | 9004 | Relay tunnel from C |
+| 3 | TCP/UDP | 172.16.0.106 | 192.168.30.0/24 | * | Roon to LAN B |
+| 4 | * | * | * | * | BLOCK all |
+
+#### Site C - WAN Rules
+
+| # | Proto | Source | Destination | Port | Description |
+|---|-------|--------|-------------|------|-------------|
+| 1 | UDP | * | This firewall | 51822 | WireGuard S2S A-C |
+| 2 | UDP | * | This firewall | 51823 | WireGuard S2S B-C |
+
+#### Site C - WG_S2S Rules
+
+| # | Proto | Source | Destination | Port | Description |
+|---|-------|--------|-------------|------|-------------|
+| 1 | UDP | 172.16.0.108 | 192.168.50.40 | 9004 | Relay tunnel from A |
+| 2 | UDP | 192.168.30.40 | 192.168.50.40 | 9004 | Relay tunnel from B |
+| 3 | TCP/UDP | 172.16.0.106 | 192.168.50.0/24 | * | Roon to LAN C |
+| 4 | * | * | * | * | BLOCK all |
+
+### WireGuard Configuration
+
+Each pair of sites has its own S2S instance and peer, configured as in Example 2.
+
+| Instance | Site | Listen Port | Tunnel Address | Peer | Peer Allowed IPs |
+|----------|------|-------------|----------------|------|------------------|
+| `s2s_siteb` | A | 51820 | 10.10.90.1/30 | SiteB | `10.10.90.2/32, 192.168.30.0/24` |
+| `s2s_sitec` | A | 51822 | 10.10.91.1/30 | SiteC | `10.10.91.2/32, 192.168.50.0/24` |
+| `s2s_sitea` | B | 51820 | 10.10.90.2/30 | SiteA | `10.10.90.1/32, 172.16.0.0/24` |
+| `s2s_sitec` | B | 51823 | 10.10.92.1/30 | SiteC | `10.10.92.2/32, 192.168.50.0/24` |
+| `s2s_sitea` | C | 51822 | 10.10.91.2/30 | SiteA | `10.10.91.1/32, 172.16.0.0/24` |
+| `s2s_siteb` | C | 51823 | 10.10.92.2/30 | SiteB | `10.10.92.1/32, 192.168.30.0/24` |
+
+### appsettings.json - Relay A (Site A)
+
+```json
+{
+  "SiteName": "RelayA",
+  "TunnelPort": 9004,
+  "RemoteRelayIps": [
+    "192.168.30.40",
+    "192.168.50.40"
+  ],
+  "LocalInterfaces": [
+    {
+      "LocalIp": "172.16.0.108",
+      "BroadcastAddress": "172.16.0.255",
+      "SubnetMask": "255.255.255.0"
+    }
+  ],
+  "UnicastTargets": [],
+  "Protocols": {
+    "Raat": true,
+    "AirPlay": false,
+    "Ssdp": false,
+    "Squeezebox": false
+  }
+}
+```
+
+### appsettings.json - Relay B (Site B)
+
+```json
+{
+  "SiteName": "RelayB",
+  "TunnelPort": 9004,
+  "RemoteRelayIps": [
+    "172.16.0.108",
+    "192.168.50.40"
+  ],
+  "LocalInterfaces": [
+    {
+      "LocalIp": "192.168.30.40",
+      "BroadcastAddress": "192.168.30.255",
+      "SubnetMask": "255.255.255.0"
+    }
+  ],
+  "UnicastTargets": [],
+  "Protocols": {
+    "Raat": true,
+    "AirPlay": false,
+    "Ssdp": false,
+    "Squeezebox": false
+  }
+}
+```
+
+### appsettings.json - Relay C (Site C)
+
+```json
+{
+  "SiteName": "RelayC",
+  "TunnelPort": 9004,
+  "RemoteRelayIps": [
+    "172.16.0.108",
+    "192.168.30.40"
+  ],
+  "LocalInterfaces": [
+    {
+      "LocalIp": "192.168.50.40",
+      "BroadcastAddress": "192.168.50.255",
+      "SubnetMask": "255.255.255.0"
+    }
+  ],
+  "UnicastTargets": [],
+  "Protocols": {
+    "Raat": true,
+    "AirPlay": false,
+    "Ssdp": false,
+    "Squeezebox": false
+  }
+}
+```
+
+**Note:**
+- Every relay lists all the other relays in `RemoteRelayIps`: packets received from the tunnel are never forwarded to another relay
+- Every relay must reach every other relay on UDP 9004
+- Roadwarrior clients are configured per site as in Example 2
+- All relays must have identical `Protocols` settings
 
 ---
 

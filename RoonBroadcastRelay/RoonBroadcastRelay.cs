@@ -51,19 +51,19 @@ namespace RoonBroadcastRelay
         readonly Dictionary<int, ProtocolConfig> _protocolByPort = new Dictionary<int, ProtocolConfig>();
 
         /// <summary>
-        /// Recent source ports for deduplication (thread-safe).
+        /// Recent source endpoints (IP and port) for deduplication (thread-safe).
         /// </summary>
-        ConcurrentDictionary<int, DateTime> _recentPorts = new ConcurrentDictionary<int, DateTime>();
+        ConcurrentDictionary<IPEndPoint, DateTime> _recentSources = new ConcurrentDictionary<IPEndPoint, DateTime>();
 
         /// <summary>
-        /// Socket for tunnel communication with remote relay.
+        /// Socket for tunnel communication with remote relays.
         /// </summary>
         Socket _tunnelSocket;
 
         /// <summary>
-        /// Remote relay endpoint for tunnel communication.
+        /// Remote relay endpoints for tunnel communication, one per remote site.
         /// </summary>
-        IPEndPoint _remoteRelayEp;
+        readonly List<IPEndPoint> _remoteRelayEps = new List<IPEndPoint>();
 
         /// <summary>
         /// Raw socket for IP spoofing.
@@ -105,10 +105,13 @@ namespace RoonBroadcastRelay
                 }
             }
 
-            // Setup remote relay endpoint
-            if (!string.IsNullOrEmpty(config.RemoteRelayIp))
+            // Setup remote relay endpoints
+            if (config.RemoteRelayIps != null)
             {
-                this._remoteRelayEp = new IPEndPoint(IPAddress.Parse(config.RemoteRelayIp), config.TunnelPort);
+                foreach (string remoteIp in config.RemoteRelayIps)
+                {
+                    this._remoteRelayEps.Add(new IPEndPoint(IPAddress.Parse(remoteIp), config.TunnelPort));
+                }
             }
 
             // Initialize enabled protocols from config
@@ -192,11 +195,14 @@ namespace RoonBroadcastRelay
                 Console.WriteLine($"[{this._config.SiteName}] LAN interface: {iface.LocalIp} (broadcast: {iface.BroadcastAddress}, mask: {iface.SubnetMask})");
             }
 
-            // Create tunnel socket if remote relay is configured
-            if (this._remoteRelayEp != null)
+            // Create tunnel socket if at least one remote relay is configured
+            if (this._remoteRelayEps.Count > 0)
             {
                 this._tunnelSocket = this.CreateTunnelSocket();
-                Console.WriteLine($"[{this._config.SiteName}] Remote relay: {this._config.RemoteRelayIp}:{this._config.TunnelPort}");
+                foreach (IPEndPoint remoteRelayEp in this._remoteRelayEps)
+                {
+                    Console.WriteLine($"[{this._config.SiteName}] Remote relay: {remoteRelayEp}");
+                }
             }
 
             // Log configured unicast targets
@@ -426,8 +432,10 @@ namespace RoonBroadcastRelay
         }
 
         /// <summary>
-        /// Sends packet to tunnel with extended 8-byte header.
+        /// Sends packet to every remote relay with extended 8-byte header.
         /// Header format: [4 bytes IP][2 bytes src port][2 bytes dst port][payload]
+        /// Sites form a full mesh: packets received from the tunnel are never sent back
+        /// into it, so every relay must list all the other relays.
         /// </summary>
         /// <param name="packet">Packet data to send.</param>
         /// <param name="srcIp">Original source IP address.</param>
@@ -452,8 +460,11 @@ namespace RoonBroadcastRelay
             // Append original packet data
             Array.Copy(packet, 0, tunnelPacket, 8, packet.Length);
 
-            this._tunnelSocket.SendTo(tunnelPacket, this._remoteRelayEp);
-            Console.WriteLine($"[{this._config.SiteName}] TUNNEL -> {this._remoteRelayEp} (src: {srcIp}:{srcPort}, dstPort: {dstPort})");
+            foreach (IPEndPoint remoteRelayEp in this._remoteRelayEps)
+            {
+                this._tunnelSocket.SendTo(tunnelPacket, remoteRelayEp);
+                Console.WriteLine($"[{this._config.SiteName}] TUNNEL -> {remoteRelayEp} (src: {srcIp}:{srcPort}, dstPort: {dstPort})");
+            }
         }
 
         #endregion
@@ -524,7 +535,7 @@ namespace RoonBroadcastRelay
                     Array.Copy(buffer, packet, received);
 
                     // Forward to tunnel with extended header
-                    if (this._tunnelSocket != null && this._remoteRelayEp != null)
+                    if (this._tunnelSocket != null && this._remoteRelayEps.Count > 0)
                     {
                         this.SendToTunnelExtended(packet, senderEp.Address, senderEp.Port, port);
                     }
@@ -542,6 +553,26 @@ namespace RoonBroadcastRelay
                         Console.WriteLine($"[{this._config.SiteName}] {protocol.Name} UNICAST -> {target}:{port}");
                     }
 
+                    // Skip bridging for duplicates from unicast targets
+                    if (fromUnicastTarget)
+                    {
+                        DateTime now = DateTime.Now;
+
+                        // Clean up old sources (thread-safe)
+                        foreach (KeyValuePair<IPEndPoint, DateTime> kv in this._recentSources)
+                        {
+                            if ((now - kv.Value).TotalMilliseconds > 100)
+                            {
+                                this._recentSources.TryRemove(kv.Key, out _);
+                            }
+                        }
+
+                        if (!this._recentSources.TryAdd(senderEp, now))
+                        {
+                            continue;
+                        }
+                    }
+
                     // Bridge to other interfaces
                     foreach (LanInterface otherIface in this._lanInterfaces)
                     {
@@ -552,24 +583,6 @@ namespace RoonBroadcastRelay
 
                         if (fromUnicastTarget)
                         {
-                            DateTime now = DateTime.Now;
-
-                            // Clean up old ports (thread-safe)
-                            foreach (KeyValuePair<int, DateTime> kv in this._recentPorts)
-                            {
-                                if ((now - kv.Value).TotalMilliseconds > 100)
-                                {
-                                    this._recentPorts.TryRemove(kv.Key, out _);
-                                }
-                            }
-
-                            if (this._recentPorts.ContainsKey(senderEp.Port))
-                            {
-                                continue;
-                            }
-
-                            this._recentPorts[senderEp.Port] = now;
-
                             // Send with protocol-specific TTL
                             if (protocol.UseBroadcast)
                             {
@@ -610,7 +623,7 @@ namespace RoonBroadcastRelay
         }
 
         /// <summary>
-        /// Listens for packets on the tunnel socket from remote relay.
+        /// Listens for packets on the tunnel socket from remote relays.
         /// Uses extended 8-byte header format.
         /// </summary>
         private void ListenTunnel()
@@ -648,24 +661,22 @@ namespace RoonBroadcastRelay
 
                     Console.WriteLine($"[{this._config.SiteName}] TUNNEL <- {senderEp.Address}:{senderEp.Port} ({packet.Length} bytes, src: {originalIp}:{originalPort}, proto: {protocol.Name})");
 
-                    // Forward to all local interfaces
-                    foreach (LanInterface iface in this._lanInterfaces)
+                    DateTime now = DateTime.Now;
+
+                    // Clean up old sources (thread-safe)
+                    foreach (KeyValuePair<IPEndPoint, DateTime> kv in this._recentSources)
                     {
-                        DateTime now = DateTime.Now;
-
-                        // Clean up old ports (thread-safe)
-                        foreach (KeyValuePair<int, DateTime> kv in this._recentPorts)
+                        if ((now - kv.Value).TotalMilliseconds > 100)
                         {
-                            if ((now - kv.Value).TotalMilliseconds > 100)
-                            {
-                                this._recentPorts.TryRemove(kv.Key, out _);
-                            }
+                            this._recentSources.TryRemove(kv.Key, out _);
                         }
+                    }
 
-                        if (!this._recentPorts.ContainsKey(originalPort))
+                    // Forward to all local interfaces, unless a duplicate
+                    if (this._recentSources.TryAdd(new IPEndPoint(originalIp, originalPort), now))
+                    {
+                        foreach (LanInterface iface in this._lanInterfaces)
                         {
-                            this._recentPorts[originalPort] = now;
-
                             // Send with protocol-specific TTL
                             if (protocol.UseBroadcast)
                             {

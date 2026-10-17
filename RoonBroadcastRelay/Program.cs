@@ -52,7 +52,10 @@ namespace RoonBroadcastRelay
             {
                 SiteName = "SiteA",
                 TunnelPort = 9004,
-                RemoteRelayIp = "192.168.30.40",
+                RemoteRelayIps = new List<string>
+                {
+                    "192.168.30.40"
+                },
                 LocalInterfaces = new List<InterfaceConfig>
                 {
                     new InterfaceConfig

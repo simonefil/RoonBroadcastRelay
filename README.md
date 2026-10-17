@@ -48,7 +48,7 @@ Example configuration:
 {
   "SiteName": "MainRelay",
   "TunnelPort": 9004,
-  "RemoteRelayIp": "",
+  "RemoteRelayIps": [],
   "LocalInterfaces": [
     {
       "LocalIp": "192.168.1.100",
@@ -187,6 +187,16 @@ AllowedIPs = ..., 255.255.255.255/32, 224.0.0.0/4
 ### Firewall Rules
 
 If you enable additional protocols beyond RAAT, duplicate your NAT port forward rules for the additional ports (5353, 1900, 3483).
+
+## Multi-site Configuration
+
+`RemoteRelayIps` lists the relays of all the other sites. Leave it empty for a single site, list one relay for two sites, and list every other relay for three or more sites.
+
+Relays form a full mesh: each relay sends discovery packets directly to every relay in its list, and packets received from the tunnel are never sent back into it. For this reason every relay must list all the other relays, and each relay must be able to reach every other relay on the tunnel port (9004).
+
+**Upgrading from a single `RemoteRelayIp`:** the old field is no longer read and is silently ignored. Replace `"RemoteRelayIp": "192.168.30.40"` with `"RemoteRelayIps": ["192.168.30.40"]`, or the relay will start without a tunnel.
+
+See [EXAMPLES.md](EXAMPLES.md) for a three-site example.
 
 ## FAQ
 

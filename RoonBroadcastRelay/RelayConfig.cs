@@ -18,9 +18,9 @@ namespace RoonBroadcastRelay
         public int TunnelPort { get; set; }
 
         /// <summary>
-        /// IP address of the remote relay for tunnel connection. Can be null.
+        /// IP addresses of the remote relays for tunnel connection, one per remote site. Can be null or empty.
         /// </summary>
-        public string RemoteRelayIp { get; set; }
+        public List<string> RemoteRelayIps { get; set; }
 
         /// <summary>
         /// Local network interfaces for listening and forwarding Roon packets.
