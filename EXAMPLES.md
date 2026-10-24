@@ -1,6 +1,6 @@
 # Roon Relay - Configuration Examples
 
-## Single Site with Multiple VLANs
+## Example 1: Single Site with Multiple VLANs
 
 This example uses one relay VM connected to each VLAN in the same site. No VPN or remote relay is required.
 
@@ -71,7 +71,7 @@ Assign the IP addresses to the VM's network interfaces before starting the relay
 
 ---
 
-## Example 1: Single Site with 1 Relay + 1 Roadwarrior VPN
+## Example 2: Single Site with 1 Relay + 1 Roadwarrior VPN
 
 ### Network Diagram
 
@@ -183,7 +183,7 @@ PersistentKeepalive = 25
 
 ---
 
-## Example 2: Site-to-Site
+## Example 3: Site-to-Site
 
 ### Network Diagram
 
@@ -401,7 +401,7 @@ PersistentKeepalive = 25
 
 ---
 
-## Example 3: Complex Multi-VLAN Configuration
+## Example 4: Complex Multi-VLAN Configuration
 
 ### Network Diagram
 
@@ -676,7 +676,7 @@ PersistentKeepalive = 25
 
 ---
 
-## Example 4: Three Sites (Full Mesh)
+## Example 5: Three Sites (Full Mesh)
 
 ### Network Diagram
 
@@ -784,7 +784,7 @@ Relay tunnel 9004: A ◄─► B, A ◄─► C, B ◄─► C
 
 ### WireGuard Configuration
 
-Each pair of sites has its own S2S instance and peer, configured as in Example 2.
+Each pair of sites has its own S2S instance and peer, configured as in Example 3.
 
 | Instance | Site | Listen Port | Tunnel Address | Peer | Peer Allowed IPs |
 |----------|------|-------------|----------------|------|------------------|
@@ -879,7 +879,7 @@ Each pair of sites has its own S2S instance and peer, configured as in Example 2
 **Note:**
 - Every relay lists all the other relays in `RemoteRelayIps`: packets received from the tunnel are never forwarded to another relay
 - Every relay must reach every other relay on UDP 9004
-- Roadwarrior clients are configured per site as in Example 2
+- Roadwarrior clients are configured per site as in Example 3
 - All relays must have identical `Protocols` settings
 
 ---
