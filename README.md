@@ -68,6 +68,8 @@ Example configuration:
 
 See [EXAMPLES.md](EXAMPLES.md) for more configuration examples.
 
+For a local network with Roon Server and devices on different VLANs, start with [Single Site with Multiple VLANs](EXAMPLES.md#single-site-with-multiple-vlans): one relay VM with a network interface in each VLAN.
+
 ### 3. Create systemd service
 
 ```bash

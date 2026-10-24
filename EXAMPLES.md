@@ -1,5 +1,76 @@
 # Roon Relay - Configuration Examples
 
+## Single Site with Multiple VLANs
+
+This example uses one relay VM connected to each VLAN in the same site. No VPN or remote relay is required.
+
+### Network Diagram
+
+```text
+                    Router / Firewall
+                    Inter-VLAN routing
+                      │           │
+          VLAN 10 — Server       VLAN 20 — Audio
+          192.168.10.0/24        192.168.20.0/24
+                      │           │
+            Roon Server         Roon endpoint
+            192.168.10.10       192.168.20.50
+                      │           │
+                      └── Relay ──┘
+                       NIC 1: 192.168.10.100/24
+                       NIC 2: 192.168.20.100/24
+```
+
+### VM Network Interfaces
+
+| VM interface | Connected network | VM IP address |
+|--------------|-------------------|---------------|
+| NIC 1 | VLAN 10 — Server | 192.168.10.100/24 |
+| NIC 2 | VLAN 20 — Audio | 192.168.20.100/24 |
+
+Run the relay on a host/VM separate from the Roon Server. Connect one virtual NIC to each VLAN through the appropriate hypervisor port group or bridge. If the hypervisor handles VLAN tagging, no VLAN tagging configuration is needed inside the VM.
+
+Assign the IP addresses to the VM's network interfaces before starting the relay. `LocalInterfaces` describes those existing interfaces; it does not create interfaces or assign IP addresses. To add another VLAN, connect another virtual NIC, assign it an IP in that subnet, and add its configuration to `LocalInterfaces`.
+
+### appsettings.json
+
+```json
+{
+  "SiteName": "HomeRelay",
+  "TunnelPort": 9004,
+  "RemoteRelayIps": [],
+  "LocalInterfaces": [
+    {
+      "LocalIp": "192.168.10.100",
+      "BroadcastAddress": "192.168.10.255",
+      "SubnetMask": "255.255.255.0"
+    },
+    {
+      "LocalIp": "192.168.20.100",
+      "BroadcastAddress": "192.168.20.255",
+      "SubnetMask": "255.255.255.0"
+    }
+  ],
+  "UnicastTargets": [],
+  "Protocols": {
+    "Raat": true,
+    "AirPlay": false,
+    "Ssdp": false,
+    "Squeezebox": false
+  }
+}
+```
+
+### Routing and Firewall Requirements
+
+- Allow the enabled discovery protocols on the relay VM's local firewall (UDP 9003 for this RAAT-only example).
+- Configure inter-VLAN routing and firewall rules on the router/firewall to allow Roon Server and devices to communicate for control and audio streaming. The relay forwards discovery packets, not the subsequent control or audio connections.
+- IP forwarding is not required on the relay VM: the application forwards discovery packets itself. Keep the router/firewall as the inter-VLAN gateway.
+- No NAT port forwarding or WireGuard configuration is needed for this topology.
+- Leave `RemoteRelayIps` and `UnicastTargets` empty. With no remote relays configured, the relay does not open the UDP 9004 tunnel socket.
+
+---
+
 ## Example 1: Single Site with 1 Relay + 1 Roadwarrior VPN
 
 ### Network Diagram
